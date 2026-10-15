@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { contrastTextColor, moveSwatch, normalizeColors } from '../src/card.js';
+import * as card from '../src/card.js';
+
+const { contrastTextColor, moveSwatch, normalizeColors } = card;
 
 test('normalizes five valid HEX colors without changing their order', () => {
   assert.deepEqual(
@@ -34,4 +36,12 @@ test('keeps swatch-label contrast at or above WCAG AA for every gray level', () 
     const values = [luminance(color), luminance(text)].sort((a, b) => b - a);
     assert.ok((values[0] + 0.05) / (values[1] + 0.05) >= 4.5, `${text} on ${color} is below 4.5:1`);
   }
+});
+
+test('generates a three-digit card tag within the 100–999 range', () => {
+  assert.equal(typeof card.randomCardNumber, 'function');
+  assert.equal(card.randomCardNumber(() => 0), '#100');
+  assert.equal(card.randomCardNumber(() => 0.5), '#550');
+  assert.equal(card.randomCardNumber(() => 0.999999), '#999');
+  assert.equal(card.randomCardNumber(() => 1), '#999');
 });

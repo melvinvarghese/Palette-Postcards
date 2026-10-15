@@ -47,6 +47,11 @@ export function contrastTextColor(background) {
   return blackRatio >= whiteRatio ? '#000000' : '#ffffff';
 }
 
+export function randomCardNumber(random = Math.random) {
+  const value = Math.min(Math.max(random(), 0), 1 - Number.EPSILON);
+  return `#${100 + Math.floor(value * 900)}`;
+}
+
 function containPhoto(bitmap, x, y, width, height) {
   const sourceWidth = bitmap.width || bitmap.naturalWidth;
   const sourceHeight = bitmap.height || bitmap.naturalHeight;
@@ -95,7 +100,7 @@ function wrapTitle(context, title, maxWidth, maxLines = 2) {
   return lines;
 }
 
-export function drawCard(context, { bitmap, title, colors, width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT }) {
+export function drawCard(context, { bitmap, title, colors, cardNumber = randomCardNumber(), width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT }) {
   const palette = normalizeColors(colors);
   if (!bitmap || !(bitmap.width || bitmap.naturalWidth) || !(bitmap.height || bitmap.naturalHeight)) {
     throw new Error('A readable photo is required to draw a postcard.');
@@ -121,13 +126,10 @@ export function drawCard(context, { bitmap, title, colors, width = DEFAULT_WIDTH
   context.drawImage(bitmap, ...containPhoto(bitmap, photo.x, photo.y, photo.width, photo.height));
   context.restore();
 
-  context.fillStyle = '#60717b';
-  context.font = `700 ${px(18)}px ui-sans-serif, system-ui, sans-serif`;
-  context.textAlign = 'left';
-  context.fillText('COLOR STUDY', px(64), px(936));
   context.textAlign = 'right';
-  context.fillStyle = '#9d7564';
-  context.fillText('NO. 001', px(1136), px(936));
+  context.fillStyle = INK;
+  context.font = `700 ${px(18)}px ui-sans-serif, system-ui, sans-serif`;
+  context.fillText(cardNumber, px(1136), px(936));
 
   const cleanTitle = String(title || '').trim() || 'A little color story';
   context.textAlign = 'left';
@@ -152,24 +154,16 @@ export function drawCard(context, { bitmap, title, colors, width = DEFAULT_WIDTH
     context.fillText(color.toUpperCase(), x + px(14), top + swatchHeight - px(18));
   });
 
-  context.fillStyle = '#60717b';
-  context.font = `700 ${px(16)}px ui-sans-serif, system-ui, sans-serif`;
-  context.textAlign = 'left';
-  context.fillText('MADE FROM A MOMENT', px(64), px(1392));
-  context.fillStyle = '#e98972';
-  context.font = `${px(28)}px Georgia, 'Times New Roman', serif`;
-  context.textAlign = 'right';
-  context.fillText('✳', px(1136), px(1396));
   context.restore();
 }
 
-export async function downloadCard({ bitmap, title, colors }) {
+export async function downloadCard({ bitmap, title, colors, cardNumber }) {
   const canvas = document.createElement('canvas');
   canvas.width = DEFAULT_WIDTH;
   canvas.height = DEFAULT_HEIGHT;
   const context = canvas.getContext('2d');
   if (!context) throw new Error('This browser could not prepare the postcard image.');
-  drawCard(context, { bitmap, title, colors });
+  drawCard(context, { bitmap, title, colors, cardNumber });
   const blob = await new Promise((resolve, reject) => {
     canvas.toBlob((value) => value ? resolve(value) : reject(new Error('The postcard could not be exported. Try again.')), 'image/png');
   });

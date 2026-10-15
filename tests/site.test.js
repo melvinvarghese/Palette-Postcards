@@ -33,3 +33,9 @@ test('the page does not depend on remote scripts or fonts', async () => {
   assert.doesNotMatch(html, /<script\b[^>]*src=["']https?:/i);
   assert.doesNotMatch(html, /@import\s+url\s*\(\s*["']?https?:|fonts\.googleapis\.com/i);
 });
+
+test('the preview card has no removed labels or sparkle mark', async () => {
+  const html = await readPage();
+  assert.doesNotMatch(html, /color study|made from a moment|✳|Made for noticing/i);
+  assert.match(html, /id=["']card-number-preview["'][^>]*>\s*#\d{3}\s*</);
+});

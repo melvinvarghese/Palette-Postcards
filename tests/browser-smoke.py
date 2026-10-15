@@ -101,6 +101,27 @@ class PalettePostcardsBrowserTest(unittest.TestCase):
         self.assertTrue(all(abs(actual - expected) <= 2 for actual, expected in zip(first_exported_swatch[:3], [135, 55, 170])), first_exported_swatch)
         self.assertTrue(all(url.startswith(self.origin) or url.startswith(f'blob:{self.origin}/') for url in self.requests), self.requests)
 
+    def test_png_export_reuses_the_number_shown_in_the_preview(self):
+        self.page.add_init_script('Math.random = () => 0.5')
+        self.page.reload()
+        number = self.page.locator('#card-number-preview').inner_text()
+        self.assertEqual(number, '#550')
+        self.page.locator('#photo-input').set_input_files(str(self.image_path))
+        self.page.wait_for_function("document.querySelectorAll('#palette-list li.palette-swatch').length === 5")
+        self.page.evaluate('''() => {
+          Math.random = () => 0.9;
+          window.__drawnText = [];
+          const original = CanvasRenderingContext2D.prototype.fillText;
+          CanvasRenderingContext2D.prototype.fillText = function(text, ...args) {
+            window.__drawnText.push(String(text));
+            return original.call(this, text, ...args);
+          };
+        }''')
+        with self.page.expect_download(timeout=10000):
+            self.page.get_by_role('button', name='Download card').click()
+        drawn_text = self.page.evaluate('window.__drawnText')
+        self.assertIn(number, drawn_text)
+
     def test_invalid_file_and_oversize_file_show_recovery_messages(self):
         self.page.locator('#photo-input').set_input_files({'name': 'bad.gif', 'mimeType': 'image/gif', 'buffer': b'GIF89a'})
         self.assertIn('JPG, PNG, or WebP', self.page.locator('#status-message').inner_text())
@@ -114,6 +135,7 @@ class PalettePostcardsBrowserTest(unittest.TestCase):
 
     def test_corrupt_image_bytes_show_a_recovery_message(self):
         self.page.locator('#photo-input').set_input_files({'name': 'broken.png', 'mimeType': 'image/png', 'buffer': b'not a real PNG image'})
+        self.page.wait_for_function("document.querySelector('#status-message').textContent.toLowerCase().includes('could not be opened')", timeout=10000)
         self.assertIn('could not be opened', self.page.locator('#status-message').inner_text().lower())
         self.assertTrue(self.page.locator('#page-title').is_visible())
 
@@ -208,6 +230,14 @@ class PalettePostcardsBrowserTest(unittest.TestCase):
         self.page.keyboard.press('Enter')
         self.assertEqual(self.page.evaluate('document.activeElement.id'), 'maker')
 
+    def test_card_number_is_a_stable_random_three_digit_tag(self):
+        self.page.add_init_script('Math.random = () => 0.5')
+        self.page.reload()
+        number = self.page.locator('#card-number-preview').inner_text()
+        self.assertEqual(number, '#550')
+        self.page.get_by_role('textbox', name='Card title').fill('Different moment')
+        self.assertEqual(self.page.locator('#card-number-preview').inner_text(), number)
+
     def test_mobile_preview_wraps_an_unbroken_max_length_title(self):
         self.page.set_viewport_size({'width': 390, 'height': 844})
         self.page.get_by_role('textbox', name='Card title').fill('X' * 48)
@@ -231,6 +261,44 @@ class PalettePostcardsBrowserTest(unittest.TestCase):
         self.assertEqual((result['width'], result['height']), (1200, 1500))
         self.assertEqual(result['firstSwatchPixel'][:3], [220, 35, 45])
         self.assertEqual(result['rightPhotoPixel'][:3], [135, 55, 170])
+
+    def test_export_has_no_color_study_footer_or_sparkle(self):
+        result = self.page.evaluate('''async () => {
+          const {drawCard}=await import('/src/card.js');
+          const image=document.createElement('canvas');image.width=10;image.height=10;
+          const bitmap=await createImageBitmap(image);
+          const canvas=document.createElement('canvas');canvas.width=1200;canvas.height=1500;
+          const context=canvas.getContext('2d');const labels=[];
+          const wrapped=new Proxy(context,{
+            get(target,key){if(key==='fillText')return(text,...args)=>{labels.push(text);return target.fillText(text,...args)};const value=target[key];return typeof value==='function'?value.bind(target):value},
+            set(target,key,value){target[key]=value;return true}
+          });
+          drawCard(wrapped,{bitmap,title:'A little color story',colors:['#dc232d','#1eaa50','#285ad2','#e6c323','#8737aa'],cardNumber:'#742'});
+          bitmap.close?.();return labels;
+        }''')
+        self.assertIn('#742', result)
+        self.assertNotIn('COLOR STUDY', result)
+        self.assertNotIn('MADE FROM A MOMENT', result)
+        self.assertNotIn('✳', result)
+
+    def test_random_number_tag_uses_the_readable_ink_color(self):
+        result = self.page.evaluate('''async () => {
+          const {drawCard}=await import('/src/card.js');
+          const image=document.createElement('canvas');image.width=10;image.height=10;
+          const bitmap=await createImageBitmap(image);
+          const canvas=document.createElement('canvas');canvas.width=1200;canvas.height=1500;
+          const context=canvas.getContext('2d');const textColors=[];
+          const wrapped=new Proxy(context,{
+            get(target,key){if(key==='fillText')return(text,...args)=>{textColors.push([text,target.fillStyle]);return target.fillText(text,...args)};const value=target[key];return typeof value==='function'?value.bind(target):value},
+            set(target,key,value){target[key]=value;return true}
+          });
+          drawCard(wrapped,{bitmap,title:'A little color story',colors:['#dc232d','#1eaa50','#285ad2','#e6c323','#8737aa'],cardNumber:'#742'});
+          const rendered=textColors.find(([text])=>text==='#742')?.[1];
+          const preview=getComputedStyle(document.querySelector('#card-number-preview')).color;
+          bitmap.close?.();return {rendered,preview};
+        }''')
+        self.assertEqual(result['rendered'], '#172b3a')
+        self.assertEqual(result['preview'], 'rgb(23, 43, 58)')
 
     def test_long_unbroken_title_stays_inside_the_card(self):
         result = self.page.evaluate('''async () => {

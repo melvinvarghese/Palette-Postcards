@@ -1,11 +1,12 @@
 import { loadLocalImage, sampleImage, validateImageFile } from './image.js';
-import { contrastTextColor, downloadCard, moveSwatch } from './card.js';
+import { contrastTextColor, downloadCard, moveSwatch, randomCardNumber } from './card.js';
 import { extractPalette } from './palette.js';
 
 const fileInput = document.querySelector('#photo-input');
 const uploadTarget = document.querySelector('.upload-target');
 const titleInput = document.querySelector('#card-title');
 const titlePreview = document.querySelector('#card-title-preview');
+const cardNumberPreview = document.querySelector('#card-number-preview');
 const photoPreview = document.querySelector('#photo-preview');
 const photoPlaceholder = document.querySelector('#photo-placeholder');
 const paletteList = document.querySelector('#palette-list');
@@ -14,7 +15,7 @@ const statusMessage = document.querySelector('#status-message');
 const copyButton = document.querySelector('#copy-colors');
 const downloadButton = document.querySelector('#download-card');
 
-const state = { bitmap: null, previewUrl: null, colors: [], title: titleInput.value };
+const state = { bitmap: null, previewUrl: null, colors: [], title: titleInput.value, cardNumber: randomCardNumber() };
 let loadSequence = 0;
 
 function setStatus(message, kind = 'error') {
@@ -28,6 +29,10 @@ function shownTitle() {
 
 function updatePreviewTitle() {
   titlePreview.textContent = shownTitle();
+}
+
+function updatePreviewNumber() {
+  cardNumberPreview.textContent = state.cardNumber;
 }
 
 function renderCardSwatches() {
@@ -111,6 +116,7 @@ function renderPaletteList() {
 
 function renderAll() {
   updatePreviewTitle();
+  updatePreviewNumber();
   renderPaletteList();
   renderCardSwatches();
 }
@@ -215,7 +221,7 @@ downloadButton.addEventListener('click', async () => {
   if (!state.bitmap || state.colors.length !== 5) return;
   downloadButton.disabled = true;
   try {
-    await downloadCard({ bitmap: state.bitmap, title: shownTitle(), colors: state.colors });
+    await downloadCard({ bitmap: state.bitmap, title: shownTitle(), colors: state.colors, cardNumber: state.cardNumber });
     setStatus('Your postcard is ready to save.', 'success');
   } catch (error) {
     setStatus(error instanceof Error ? error.message : 'The postcard could not be downloaded. Try again.');
