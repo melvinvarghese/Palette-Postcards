@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f7f4ec">
+    <meta name="description" content="Turn a favorite photo into a small, shareable color study.">
+    <title>Palette Postcards — Keep the colors you love</title>
+    <link rel="stylesheet" href="assets/css/site.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#maker">Skip to the palette maker</a>
+    <header class="site-header">
+      <a class="brand" href="./" aria-label="Palette Postcards home">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span>Palette Postcards</span>
+      </a>
+      <span class="header-note">A little color to keep</span>
+    </header>
+
+    <main id="maker" class="page-shell">
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow">A pocket-sized color study</p>
+        <h1 id="page-title">Keep a little<br><em>color story.</em></h1>
+        <p class="intro-copy">Start with a photo you love. We’ll find the colors hiding in it and turn them into a postcard worth keeping.</p>
+      </section>
+
+      <section class="maker-grid" aria-label="Create your palette postcard">
+        <form class="controls" onsubmit="return false">
+          <div class="section-heading">
+            <span class="step-mark" aria-hidden="true">01</span>
+            <div>
+              <h2>Choose a photo</h2>
+              <p>Use something from your camera roll or desktop.</p>
+            </div>
+          </div>
+
+          <label class="upload-target" for="photo-input">
+            <span class="upload-symbol" aria-hidden="true">＋</span>
+            <span class="upload-label">Choose an image</span>
+            <span class="upload-detail">or drop it here</span>
+            <span class="upload-formats">JPG, PNG or WebP · up to 15 MB</span>
+            <input id="photo-input" name="photo" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="upload-help">
+          </label>
+          <p id="upload-help" class="sr-only">Your image stays in this browser and is not uploaded.</p>
+
+          <div class="section-heading title-heading">
+            <span class="step-mark" aria-hidden="true">02</span>
+            <div>
+              <h2>Name this moment</h2>
+              <p>A few words make it yours.</p>
+            </div>
+          </div>
+          <label class="field-label" for="card-title">Card title</label>
+          <input id="card-title" class="title-input" name="title" type="text" maxlength="48" value="A little color story" autocomplete="off">
+
+          <div class="section-heading palette-heading">
+            <span class="step-mark" aria-hidden="true">03</span>
+            <div>
+              <h2>Make it yours</h2>
+              <p>Five colors, found in your photo.</p>
+            </div>
+          </div>
+          <ol id="palette-list" class="palette-list" aria-label="Extracted colors" aria-live="polite">
+            <li class="palette-empty">Your colors will appear here.</li>
+          </ol>
+          <p id="status-message" class="status-message" role="status" aria-live="polite"></p>
+
+          <div class="actions" aria-label="Card actions">
+            <button id="copy-colors" class="button button-secondary" type="button" disabled>Copy colors</button>
+            <button id="download-card" class="button button-primary" type="button" disabled>Download card</button>
+          </div>
+          <p class="privacy-note"><span aria-hidden="true">◌</span> Your photo stays on your device.</p>
+        </form>
+
+        <section class="preview-area" aria-labelledby="preview-heading">
+          <div class="preview-topline">
+            <h2 id="preview-heading">Your postcard</h2>
+            <span class="ratio-label">4 × 5</span>
+          </div>
+          <div class="preview-stage">
+            <article id="card-preview" class="palette-card" aria-label="Palette postcard preview">
+              <div class="photo-frame">
+                <img id="photo-preview" alt="" hidden>
+                <div id="photo-placeholder" class="photo-placeholder" aria-hidden="true">
+                  <span class="placeholder-sun"></span>
+                  <span class="placeholder-arc"></span>
+                  <span class="placeholder-slab"></span>
+                  <span class="placeholder-leaf placeholder-leaf-one"></span>
+                  <span class="placeholder-leaf placeholder-leaf-two"></span>
+                  <span class="placeholder-caption">your photo goes here</span>
+                </div>
+              </div>
+              <div class="card-caption">
+                <p class="card-kicker">COLOR STUDY <span>NO. 001</span></p>
+                <h3 id="card-title-preview">A little color story</h3>
+                <ol id="card-swatches" class="card-swatches" aria-label="Colors in this card">
+                  <li style="--swatch:#e88b63"><span>#E88B63</span></li>
+                  <li style="--swatch:#f3d39b"><span>#F3D39B</span></li>
+                  <li style="--swatch:#5a9a86"><span>#5A9A86</span></li>
+                  <li style="--swatch:#406d8b;--swatch-ink:#ffffff"><span>#406D8B</span></li>
+                  <li style="--swatch:#263b4b;--swatch-ink:#ffffff"><span>#263B4B</span></li>
+                </ol>
+                <p class="card-footer">MADE FROM A MOMENT <span>✳</span></p>
+              </div>
+            </article>
+            <p class="preview-caption">A small keepsake from the colors around you.</p>
+          </div>
+        </section>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <span>Made for noticing.</span>
+      <span>Photos are processed locally in your browser.</span>
+    </footer>
+  </body>
+</html>
