@@ -22,7 +22,12 @@ export async function loadLocalImage(file) {
   if (!validation.valid) throw new Error(validation.message);
 
   if (typeof createImageBitmap === 'function') {
-    const bitmap = await createImageBitmap(file);
+    let bitmap;
+    try {
+      bitmap = await createImageBitmap(file);
+    } catch {
+      throw new Error('This image could not be opened. Try another photo.');
+    }
     if (!bitmap.width || !bitmap.height) {
       bitmap.close?.();
       throw new Error('This image has no visible size. Choose another photo.');
@@ -68,8 +73,6 @@ export function sampleImage(bitmap, maxDimension = 64) {
 
   const context = canvas.getContext('2d', { willReadFrequently: true });
   if (!context) throw new Error('This browser could not read the photo colors.');
-  context.fillStyle = '#ffffff';
-  context.fillRect(0, 0, width, height);
   context.drawImage(bitmap, 0, 0, width, height);
   const { data } = context.getImageData(0, 0, width, height);
   return { data, width, height };

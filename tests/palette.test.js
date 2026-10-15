@@ -14,6 +14,7 @@ test('returns the five most common colors in deterministic order', () => {
   const palette = extractPalette(rgba, 6, 1);
   assert.equal(palette.length, 5);
   assert.equal(palette[0], '#dc232d');
+  assert.deepEqual(palette, ['#dc232d', '#1eaa50', '#285ad2', '#e6c323', '#8737aa']);
   assert.deepEqual([...palette].sort(), ['#1eaa50', '#285ad2', '#8737aa', '#dc232d', '#e6c323']);
   assert.deepEqual(extractPalette(rgba, 6, 1), palette);
 });

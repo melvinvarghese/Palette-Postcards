@@ -43,7 +43,7 @@ export function extractPalette(rgba, width, height, count = DEFAULT_COUNT) {
     const g = rgba[i + 1];
     const b = rgba[i + 2];
     const key = `${r >> 4},${g >> 4},${b >> 4}`;
-    const bucket = buckets.get(key) || { count: 0, r: 0, g: 0, b: 0, key };
+    const bucket = buckets.get(key) || { count: 0, r: 0, g: 0, b: 0, firstIndex: i / 4 };
     bucket.count += 1;
     bucket.r += r;
     bucket.g += g;
@@ -54,7 +54,7 @@ export function extractPalette(rgba, width, height, count = DEFAULT_COUNT) {
   if (visiblePixels === 0) throw new Error('No visible colors were found in this photo.');
 
   const colors = [...buckets.values()]
-    .sort((a, b) => b.count - a.count || a.key.localeCompare(b.key))
+    .sort((a, b) => b.count - a.count || a.firstIndex - b.firstIndex)
     .slice(0, count)
     .map((bucket) => ({
       hex: colorHex(bucket.r / bucket.count, bucket.g / bucket.count, bucket.b / bucket.count),
